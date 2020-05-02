@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import QFileDialog, QMessageBox
 
 from interfejs import Ui_MainWindow
 from obr import podziel
+from obr.util import safe_name
 
 
 class UserInterface(Ui_MainWindow):
@@ -18,6 +19,7 @@ class UserInterface(Ui_MainWindow):
         self.file_picker_dialog = QFileDialog()
         self.mimetypes = mimetypes.MimeTypes()
         self.model_split_file_list = QStandardItemModel()
+        self.model_split_channels_file_list = QStandardItemModel()
         self.model_listview_log = QStandardItemModel()
         self.executor = ThreadPoolExecutor()
         self.split_queue = queue.Queue()
@@ -83,6 +85,22 @@ class UserInterface(Ui_MainWindow):
 
         self.button_back.clicked.connect(lambda: self._set_processing(False))
 
+        # region split channels
+        self.listview_split_channels_files.setModel(self.model_split_channels_file_list)
+        self.listview_split_channels_files.dragEnterEvent = self.on_drag_accepts_wave(True)
+        self.listview_split_channels_files.dropEvent = self.on_button_split_drop
+        self.listview_split_channels_files.setAcceptDrops(True)
+
+        self.button_split_channels_pick_file.dragEnterEvent = self.on_drag_accepts_wave(True)
+        self.button_split_channels_pick_file.clicked.connect(self.on_split_channels_pick_file)
+        self.button_split_channels_pick_file.dropEvent = self.on_button_channels_split_drop
+        self.button_split_channels_pick_file.setAcceptDrops(True)
+
+        self.button_split_channels_delete_picked_file.clicked.connect(self.split_channels_list_delete_item)
+
+        self.button_split_channels_accept.clicked.connect(self.split_channels)
+        # endregion
+
     def button_update_split_volume_on_click(self):
         self.spin_silence.setValue(self.spin_volume_output.value())
         self.action_picker.setCurrentIndex(3)
@@ -141,6 +159,11 @@ class UserInterface(Ui_MainWindow):
         for url in mimedata.urls():
             self.model_split_file_list.appendRow(QStandardItem(url.toLocalFile()))
 
+    def on_button_channels_split_drop(self, a0: QDropEvent):
+        mimedata = a0.mimeData()
+        for url in mimedata.urls():
+            self.model_split_channels_file_list.appendRow(QStandardItem(url.toLocalFile()))
+
     def on_split_pick_file(self):
         opts = self.file_picker_dialog.Options()
         fnames, _ = (self.file_picker_dialog.getOpenFileNames(None, 'Wybierz plik', '', 'Pliki audio wave (*.wav)',
@@ -148,10 +171,23 @@ class UserInterface(Ui_MainWindow):
         for fname in fnames:
             self.model_split_file_list.appendRow(QStandardItem(fname))
 
+    def on_split_channels_pick_file(self):
+        opts = self.file_picker_dialog.Options()
+        fnames, _ = (self.file_picker_dialog.getOpenFileNames(None, 'Wybierz plik', '', 'Pliki audio wave (*.wav)',
+                                                              options=opts))
+        for fname in fnames:
+            self.model_split_channels_file_list.appendRow(QStandardItem(fname))
+
     def split_list_delete_item(self, *args):
-        print(args)
         for index in self.listview_split_files.selectedIndexes():
             self.model_split_file_list.removeRow(
+                index.row(),
+                index.parent()
+            )
+
+    def split_channels_list_delete_item(self, *args):
+        for index in self.listview_split_channels_files.selectedIndexes():
+            self.model_split_channels_file_list.removeRow(
                 index.row(),
                 index.parent()
             )
@@ -166,14 +202,14 @@ class UserInterface(Ui_MainWindow):
         inp = pydub.AudioSegment.from_wav(path)
         return round(inp.dBFS, 3)
 
-    def _move_files_from_list_view(self):
-        for _ in range(self.model_split_file_list.rowCount()):
-            row = self.model_split_file_list.takeRow(0)
+    def _move_files_from_list_view(self, model):
+        for _ in range(model.rowCount()):
+            row = model.takeRow(0)
             self.split_queue.put(row[0].text())
 
     def split(self):
         self._set_processing(True)
-        self._move_files_from_list_view()
+        self._move_files_from_list_view(self.model_split_file_list)
         try:
             path = self.split_queue.get_nowait()
         except queue.Empty:
@@ -194,6 +230,27 @@ class UserInterface(Ui_MainWindow):
         task = self.executor.submit(self._really_split, path, min_silence_length, silence_thresh, dest_dir)
         task.add_done_callback(self._split_done)
 
+    def split_channels(self):
+        self._set_processing(True)
+        self._move_files_from_list_view(self.model_split_channels_file_list)
+        try:
+            path = self.split_queue.get_nowait()
+        except queue.Empty:
+            self.model_listview_log.appendRow(QStandardItem(
+                app.translate('log', 'Wszystko zrobione!')
+            ))
+            self.button_back.setEnabled(True)
+            return
+        dest_dir = os.path.join(os.path.dirname(path), os.path.splitext(path)[0] + '_split_channels')
+        self.model_listview_log.appendRow(QStandardItem(
+            app.translate('log', 'Rozdzielanie kanałów z pliku {file!r} do katalogu {output!r}').format(
+                file=path,
+                output=dest_dir
+            )
+        ))
+        task = self.executor.submit(self._really_split_channels, path, dest_dir)
+        task.add_done_callback(self._split_channels_done)
+
     def _split_done(self, fut: Future):
         try:
             fut.result()
@@ -209,6 +266,21 @@ class UserInterface(Ui_MainWindow):
             ))
         self.split()
 
+    def _split_channels_done(self, fut: Future):
+        try:
+            fut.result()
+        except Exception as e:
+            self.model_listview_log.appendRow(QStandardItem(
+                app.translate('log', 'Problem z dzieleniem. Błąd: {e!r}').format(
+                    e=e
+                )
+            ))
+        else:
+            self.model_listview_log.appendRow(QStandardItem(
+                app.translate('log', 'Podzielono :)')
+            ))
+        self.split_channels()
+
     def _really_split(self, path: str, min_silence_length: int, silence_thresh: float, dest_dir: str):
         os.mkdir(dest_dir)
         inp = pydub.AudioSegment.from_wav(path)
@@ -219,6 +291,20 @@ class UserInterface(Ui_MainWindow):
             silence_thresh,
             path
         )
+        self.split_queue.task_done()
+
+    def _really_split_channels(self, path: str, dest_dir: str):
+        os.mkdir(dest_dir)
+        inp = pydub.AudioSegment.from_wav(path)
+        channels = inp.split_to_mono()
+        n = safe_name(path)
+        for i, ch in enumerate(channels):
+            e_path = os.path.join(dest_dir, f'{n}_{i}.wav')
+            print(f"Eksportownie dźwięku do {e_path}")
+            ch.export(
+                e_path,
+                format="wav"
+            )
         self.split_queue.task_done()
     # endregion
 

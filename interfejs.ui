@@ -47,7 +47,7 @@
          <enum>Qt::ClickFocus</enum>
         </property>
         <property name="currentIndex">
-         <number>2</number>
+         <number>4</number>
         </property>
         <widget class="QWidget" name="tab_welcome">
          <attribute name="title">
@@ -98,9 +98,19 @@
           </sizepolicy>
          </property>
          <attribute name="title">
-          <string>Sprawdź głośność</string>
+          <string>Sprawdź &amp;głośność</string>
          </attribute>
          <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Dzięki tej funkcji programu możesz sprawdzić jaką głośność ma wycinek dźwięku. Jest to przydatne przy określaniu poziomu ciszy.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
           <item>
            <layout class="QHBoxLayout" name="layout_autovolume_pick_file">
             <item>
@@ -116,7 +126,7 @@
                <bool>true</bool>
               </property>
               <property name="text">
-               <string>Wybierz plik</string>
+               <string>&amp;Wybierz plik</string>
               </property>
              </widget>
             </item>
@@ -140,7 +150,7 @@
             <item>
              <widget class="QPushButton" name="button_check_volume_run">
               <property name="text">
-               <string>Sprawdź</string>
+               <string>&amp;Sprawdź</string>
               </property>
              </widget>
             </item>
@@ -204,7 +214,7 @@
            </layout>
           </item>
           <item>
-           <spacer name="verticalSpacer_2">
+           <spacer name="verticalSpacer_4">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
             </property>
@@ -264,9 +274,19 @@
           </sizepolicy>
          </property>
          <attribute name="title">
-          <string>Rozdziel kanały</string>
+          <string>Rozdziel &amp;kanały</string>
          </attribute>
          <layout class="QVBoxLayout" name="verticalLayout_6">
+          <item>
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>Dzięki tej funckji programu, możesz rozdzielić kanały wielu plików za jednym razem. Jest to przydatne w przypadkach, w których na taśmie/orginale na lewym kanale jest jeden utwór, a na prawym drugi.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
           <item>
            <widget class="QListView" name="listview_split_channels_files">
             <property name="maximumSize">
@@ -310,7 +330,7 @@
             <item>
              <widget class="QPushButton" name="button_split_channels_pick_file">
               <property name="text">
-               <string>Wybierz</string>
+               <string>&amp;Wybierz</string>
               </property>
              </widget>
             </item>
@@ -341,7 +361,7 @@
             <item>
              <widget class="QPushButton" name="button_split_channels_accept">
               <property name="text">
-               <string>Jedziemy</string>
+               <string>&amp;Jedziemy</string>
               </property>
              </widget>
             </item>
@@ -364,9 +384,19 @@
         </widget>
         <widget class="QWidget" name="tab_split_action">
          <attribute name="title">
-          <string>Podziel</string>
+          <string>&amp;Podziel</string>
          </attribute>
          <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Dzięki tej funckji programu, możesz rozdzielić wiele plików za jednym razem. Pozwala to na półautomatyczne wycięcie utworów z jednego dużego pliku.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
           <item>
            <layout class="QVBoxLayout" name="layout_volume">
             <item>
@@ -462,7 +492,7 @@
               <item>
                <widget class="QPushButton" name="button_from_file">
                 <property name="text">
-                 <string>Z Pliku</string>
+                 <string>Z &amp;Pliku</string>
                 </property>
                </widget>
               </item>
@@ -585,14 +615,14 @@
               <item>
                <widget class="QPushButton" name="button_split_pick_file">
                 <property name="text">
-                 <string>Wybierz</string>
+                 <string>&amp;Wybierz</string>
                 </property>
                </widget>
               </item>
               <item>
                <widget class="QPushButton" name="button_delete_picked_file">
                 <property name="text">
-                 <string>Usuń</string>
+                 <string>&amp;Usuń</string>
                 </property>
                </widget>
               </item>
@@ -605,7 +635,7 @@
             <item>
              <widget class="QPushButton" name="button_split_accept">
               <property name="text">
-               <string>Jedziemy</string>
+               <string>&amp;Jedziemy</string>
               </property>
              </widget>
             </item>
@@ -632,6 +662,16 @@
          </attribute>
          <layout class="QVBoxLayout" name="verticalLayout_5">
           <item>
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>Tutaj pokazują się logi operacji, która jest właśnie przeprowadzana. Zamykanie programu nie jest polecane, raz straconego postępu nie można odzyskać i należy operacje przeprowadzić jeszcze raz.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QListView" name="listview_log">
             <property name="alternatingRowColors">
              <bool>true</bool>
@@ -652,7 +692,7 @@
                <bool>false</bool>
               </property>
               <property name="text">
-               <string>← Powrót</string>
+               <string>← &amp;Powrót</string>
               </property>
              </widget>
             </item>
@@ -697,10 +737,23 @@
   <tabstop>button_check_volume_run</tabstop>
   <tabstop>button_next_step</tabstop>
   <tabstop>button_next_step2</tabstop>
+  <tabstop>button_split_channels_pick_file</tabstop>
+  <tabstop>button_split_channels_delete_picked_file</tabstop>
+  <tabstop>listview_split_channels_files</tabstop>
+  <tabstop>button_split_channels_accept</tabstop>
+  <tabstop>button_split_pick_file</tabstop>
+  <tabstop>button_split_accept</tabstop>
+  <tabstop>listview_split_files</tabstop>
+  <tabstop>button_delete_picked_file</tabstop>
+  <tabstop>slider_silence_length</tabstop>
+  <tabstop>spin_silence_length</tabstop>
+  <tabstop>button_update_split_volume</tabstop>
+  <tabstop>button_back</tabstop>
+  <tabstop>listview_log</tabstop>
+  <tabstop>button_from_file</tabstop>
+  <tabstop>spin_silence</tabstop>
   <tabstop>spin_volume_output</tabstop>
   <tabstop>slider_silence</tabstop>
-  <tabstop>spin_silence</tabstop>
-  <tabstop>button_from_file</tabstop>
  </tabstops>
  <resources/>
  <connections>

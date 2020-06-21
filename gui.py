@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor, Future
 
 import pydub
 from PyQt5 import QtWidgets
+from PyQt5.QtCore import QTranslator, QLocale
 from PyQt5.QtGui import QDragEnterEvent, QDropEvent, QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 
@@ -127,8 +128,10 @@ class UserInterface(Ui_MainWindow):
     def on_autovolume_drop(self, a0: QDropEvent):
         mimedata = a0.mimeData()
         self.edit_autovolume_file_name.setText(mimedata.urls()[0].toLocalFile())
+        self.button_update_split_volume.setEnabled(False)
 
     def on_autovolume_pick_file(self):
+        self.button_update_split_volume.setEnabled(False)
         opts = self.file_picker_dialog.Options()
         fname, _ = (self.file_picker_dialog.getOpenFileName(None, 'Wybierz plik', '', 'Pliki audio wave (*.wav)',
                                                             options=opts))
@@ -138,7 +141,7 @@ class UserInterface(Ui_MainWindow):
         print('update volume output', fut)
         res: int = fut.result()
         self.spin_volume_output.setValue(res)
-        self.button_update_split_volume.setDisabled(False)
+        self.button_update_split_volume.setEnabled(True)
 
     def check_volume_run(self):
         path = self.edit_autovolume_file_name.text()
@@ -196,6 +199,9 @@ class UserInterface(Ui_MainWindow):
         if e % 100 != 0:
             self.slider_silence_length.setValue(e - e % 100)
 
+    def log(self, text: str):
+        self.model_listview_log.appendRow(QStandardItem(text))
+
     # region actions
     def _really_check_volume(self, path: str):
         print('really check volume')
@@ -213,9 +219,12 @@ class UserInterface(Ui_MainWindow):
         try:
             path = self.split_queue.get_nowait()
         except queue.Empty:
-            self.model_listview_log.appendRow(QStandardItem(
+            self.log(
                 app.translate('log', 'Wszystko zrobione!')
-            ))
+            )
+            self.log(
+                app.translate('log', '-----------------------------------')
+            )
             self.button_back.setEnabled(True)
             return
         dest_dir = os.path.join(os.path.dirname(path), os.path.splitext(path)[0] + '_split')
@@ -236,9 +245,12 @@ class UserInterface(Ui_MainWindow):
         try:
             path = self.split_queue.get_nowait()
         except queue.Empty:
-            self.model_listview_log.appendRow(QStandardItem(
+            self.log(
                 app.translate('log', 'Wszystko zrobione!')
-            ))
+            )
+            self.log(
+                app.translate('log', '-----------------------------------')
+            )
             self.button_back.setEnabled(True)
             return
         dest_dir = os.path.join(os.path.dirname(path), os.path.splitext(path)[0] + '_split_channels')
@@ -311,6 +323,20 @@ class UserInterface(Ui_MainWindow):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
+
+    qt_translator = QTranslator()
+    qt_translator.load(f'qt_{QLocale.system().name()}',
+                       'translations')
+
+    app.installTranslator(qt_translator)
+
+    app_translator = QTranslator()
+    tr_f = f'nagrywanol_{QLocale.system().name()}.qm'
+    print(tr_f)
+    app_translator.load(tr_f,
+                        'translations')
+    app.installTranslator(app_translator)
+
     main_window = QtWidgets.QMainWindow()
     ui = UserInterface()
     ui.setupUi(main_window)
